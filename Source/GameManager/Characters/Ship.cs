@@ -23,7 +23,8 @@ namespace Asteroids {
     }
 
     private void OnCollisionEnter(IColliderComponent cc) {
-      this.Graphics.Color = ColorRGB.Blue;
+      if (cc.Origin.GetType() != typeof(Bullet))
+        this.Graphics.Color = ColorRGB.Blue;
     }
 
     private void OnCollisionExit(IColliderComponent cc) {

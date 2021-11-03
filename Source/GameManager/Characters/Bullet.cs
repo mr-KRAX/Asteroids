@@ -8,6 +8,7 @@ namespace Asteroids {
       this.Graphics.Texture = gm.GetTexture(TextureID.BULLET);
 
       this.PhysicalComponent.MaxSpeed = gm.Configs.ShipConfigs.BulletSpeed;
+      this.PhysicalComponent.Teleportable = false;
 
       _timeLeft = gm.Configs.ShipConfigs.BulletLifeTime;
     }

@@ -188,7 +188,6 @@ namespace Asteroids {
       _ship = new Ship();
       _ship.Transform.Pos = _configs.CommonConfigs.FieldSize / 2f;
       _gameObjects.Add(_ship);
-
       _activeUI = new InGameUI();
     }
 

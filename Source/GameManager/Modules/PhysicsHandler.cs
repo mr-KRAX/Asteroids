@@ -18,16 +18,9 @@ namespace Asteroids {
             phc.Speed = Vector2.zero;
         }
         phc.UpdateState(deltatTime);
-        phc.Origin.Transform.Pos = correctPosition(phc.Origin.Transform.Pos);
       }
     }
 
-    private Vector2 correctPosition(Vector2 pos) {
-      return new Vector2(
-        (pos.x % _configs.FieldSize.x + _configs.FieldSize.x) % _configs.FieldSize.x,
-        (pos.y % _configs.FieldSize.y + _configs.FieldSize.y) % _configs.FieldSize.y
-      );
-    }
 
     public void AddPhysicalComponent(IPhysicalComponent pc){
       _objects.Add(pc);
