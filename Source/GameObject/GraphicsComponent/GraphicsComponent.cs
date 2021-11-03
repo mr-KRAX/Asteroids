@@ -1,22 +1,16 @@
 namespace Asteroids {
   class GraphicsComponent : IGraphicsComponent {
-    private object _texture;
-    private ColorRGB _color;
+    public object Texture { get; set; }
+    public ColorRGB Color { get; set; }
+    public IBasicObject Origin { get; private set; }
 
-    public GraphicsComponent(object texture = null){
+    public GraphicsComponent(IBasicObject go, object texture = null) {
+      Origin = go;
       if (texture != null)
-        UpdateTexture(texture);
-      _color = ColorRGB.White;
+        Texture = texture;
+      Color = ColorRGB.White;
     }
 
-    public object Texture => _texture;
-    public ColorRGB Color => _color;
-
-    public void UpdateTexture(object newTexture) {
-      _texture = newTexture;
-    }
-    public void SetColor(ColorRGB newColor) {
-      _color = newColor;
-    }
+    public void OnDestroy() { }
   }
 }

@@ -1,9 +1,6 @@
 namespace Asteroids {
-  public interface IGraphicsComponent {
-    object Texture{get;}
-    ColorRGB Color{get;}
-
-    void UpdateTexture(object newTexture);
-    void SetColor(ColorRGB color);
+  public interface IGraphicsComponent : IComponent {
+    object Texture { get; set; }
+    ColorRGB Color { get; set; }
   }
 }

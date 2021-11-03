@@ -1,16 +1,26 @@
+using System;
+
 namespace Asteroids {
   class Asteroid : GameObject {
-    
-    private float turningSpeed = 3f;
-    private float flyForce = 1000f;
+    AsteroidsSpawner _spawner;
 
-    public Asteroid(IPhysicsHandler physics, Vector2 speed) : base() {
-      physicalBody = new PhysicalComponent(physics, Transform);
+    public Asteroid(AsteroidsSpawner spawner) : base() {
+      var gm = GameManager.GetInternalInstance();
 
-      physicalBody.MaxSpeed = speed.Magnitude;
-      physicalBody.Speed = speed;
+      this.Graphics.Texture = gm.GetTexture(TextureID.ASTEROID1);
 
-      graphics = new GraphicsComponent();
+      Vector2[] polygon = { new Vector2(50, 50) };
+      this.ColliderComponent.UpdateVertices(polygon);
+      this.ColliderComponent.OnCollisionEnter = OnCollisionEnter;
+      
+      this.PhysicalComponent.MaxSpeed = gm.Configs.EnemiesConfigs.AsteroidMaxSpeed;
+
+      _spawner = spawner;
+    }
+
+    private void OnCollisionEnter(IColliderComponent cc) {
+      if (cc.Origin.GetType() == typeof(Bullet))
+        _spawner.AsteroidDestroyed(this);
     }
   }
 }

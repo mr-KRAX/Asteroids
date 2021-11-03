@@ -2,8 +2,7 @@ using System.Collections.Generic;
 using System;
 
 namespace Asteroids {
-  static class Logger{
-
+  public static class Logger{
     private static Dictionary<string, string> staticLog;
 
     static Logger(){

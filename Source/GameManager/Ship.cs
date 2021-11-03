@@ -1,37 +1,63 @@
 using Microsoft.Xna.Framework.Input;
 
+// using static Asteroids.Logger;
+
 namespace Asteroids {
   class Ship : GameObject {
-    
-    private float maxSpeed = 300f;
-    private float turningSpeed = 3f;
-    private float flyForce = 1000f;
+    private IShipConfigs _configs;
+    private float _shootTimeOut;
 
-    public Ship(IPhysicsHandler physics) : base() {
-      transform.Pos = new Vector2(100,100);
+    public Ship() : base() {
+      var gm = GameManager.GetInternalInstance();
+      _configs = gm.Configs.ShipConfigs;
 
-      physicalBody = new PhysicalComponent(physics, Transform);
-      physicalBody.Drag = true;
-      physicalBody.MaxSpeed = maxSpeed;
+      this.PhysicalComponent.Drag = true;
+      this.PhysicalComponent.MaxSpeed = _configs.MaxSpeed;
 
- 
-      graphics = new GraphicsComponent(); 
+      Vector2[] polygon = { new Vector2(0, 24), new Vector2(-17, -24), new Vector2(17, -24) };
+      this.ColliderComponent.UpdateVertices(polygon);
+      this.ColliderComponent.OnCollisionEnter = OnCollisionEnter;
+      this.ColliderComponent.OnCollisionExit = OnCollisionExit;
+
+      this.Graphics.Texture = gm.GetTexture(TextureID.SHIP);
     }
 
-    public override void Update() {
-
-      base.Update();
+    private void OnCollisionEnter(IColliderComponent cc) {
+      this.Graphics.Color = ColorRGB.Blue;
     }
 
-    public void TurnRight(){
-      PhysicalBody.RotateOnDegrees(turningSpeed);
+    private void OnCollisionExit(IColliderComponent cc) {
+      this.Graphics.Color = ColorRGB.White;
     }
-    public void TurnLeft(){
-      PhysicalBody.RotateOnDegrees(-turningSpeed);
+
+    public override void Update(float deltaTime) {
+      base.Update(deltaTime);
+
+      _shootTimeOut -= deltaTime;
+    }
+
+    public void Shoot() {
+      if (_shootTimeOut > 0f)
+        return;
+
+      var bullet = new Bullet();
+      bullet.Transform.Pos = Transform.Pos;
+      bullet.PhysicalComponent.Speed = _configs.BulletSpeed * Transform.RotationDir;
+
+      GameManager.GetInternalInstance().SpawnGameObject(bullet);
+      _shootTimeOut = _configs.ShootDelay;
+    }
+
+    public void TurnRight() {
+      Transform.Rotation += _configs.TurningSpeed;
+    }
+
+    public void TurnLeft() {
+      Transform.Rotation -= _configs.TurningSpeed;
     }
 
     public void FlyForward() {
-      PhysicalBody.ApplyForce(Transform.RotationDir * flyForce);
+      PhysicalComponent.ApplyForce(Transform.RotationDir * _configs.Thrust);
     }
   }
 }
