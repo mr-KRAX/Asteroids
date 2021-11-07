@@ -24,9 +24,14 @@ namespace Asteroids {
     }
 
     public static ColorRGB White => new ColorRGB(1f,1f,1f);
+    public static ColorRGB Black => new ColorRGB(0,0,0);
     public static ColorRGB Red => new ColorRGB(1f,0,0);
     public static ColorRGB Green => new ColorRGB(0,1f,0);
     public static ColorRGB Blue => new ColorRGB(0,0,1f);
 
+    public static bool operator == (ColorRGB lhs, ColorRGB rhs) => (lhs.r == rhs.r) && (lhs.g == rhs.g) && (lhs.b == rhs.b); 
+    public static bool operator != (ColorRGB lhs, ColorRGB rhs) => !(lhs == rhs); 
+    public override int GetHashCode() => (r, g, b).GetHashCode();
+    public override bool Equals(object obj) => (obj is ColorRGB) && this == (ColorRGB)obj;
   }
 }

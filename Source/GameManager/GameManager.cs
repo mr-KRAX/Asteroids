@@ -10,9 +10,10 @@ namespace Asteroids {
     MENU,
     PLAY,
     PAUSE,
+    GAMEOVER,
     EXIT
   }
-  class GameManager : IGameManagerExternal, IGameManagerInternal {
+  class GameManager : IGameManagerExternal, IGameManagerInternal, IGameStats {
     #region  Singletone
     private static GameManager _instance = null;
 
@@ -35,12 +36,8 @@ namespace Asteroids {
     private IConfigsStorage _configs;
     private IPhysicsHandler _physicsHandler;
     private ICollisionDetecter _collisionDetecter;
-    private AsteroidsSpawner _asteroidSpawner;
+    private IEnemySpawner _enemySpawner;
     #endregion Modules
-
-    #region Graphics
-    private Dictionary<TextureID, object> _graphicsStorage;
-    #endregion Graphics
 
     #region Objects
     private List<IGameObject> _gameObjects;
@@ -50,16 +47,21 @@ namespace Asteroids {
     #endregion Objects
 
     #region UI
-    private IUI _activeUI;
+    private IUI _inGameUI;
+    private IUI _pauseUI;
+    private IUI _startMenuUI;
+    private IUI _debugUI;
+    private IUI _gameOverUI;
+    private IEnumerable<IUI> _allUIs;
     #endregion UI
 
     #region GameStates
     private GameState _state;
     private int _score;
+    private int _bestScore;
     #endregion GameStates
 
     private GameManager() {
-      _graphicsStorage = new Dictionary<TextureID, object>();
       _gameObjects = new List<IGameObject>();
       _gameObjectsToDestroy = new HashSet<IGameObject>();
       _gameObjectsToSpawn = new HashSet<IGameObject>();
@@ -70,70 +72,90 @@ namespace Asteroids {
 
       _physicsHandler = new PhysicsHandler();
       _collisionDetecter = new CollisionDetecter();
-      _asteroidSpawner = new AsteroidsSpawner();
+      _enemySpawner = new EnemySpawner();
 
       _state = GameState.INITIAL;
-    }
 
-    private void ResetScene() {
-      _ship.Transform.Pos = new Vector2(700, 400);
-    }
+      _inGameUI = new InGameUI();
+      _pauseUI = new PauseUI();
+      _startMenuUI = new StartMenuUI();
+      _debugUI = new DebugUI();
+      _gameOverUI = new GameOverUI();
 
+      _allUIs = new IUI[] { _inGameUI, _pauseUI, _startMenuUI, _gameOverUI, _debugUI };
+
+      foreach (var ui in _allUIs)
+        ui.IsActive = false;
+    }
     #region IGameObjectExternal
-    public void SetTexture(TextureID type, object gfx) {
-      _graphicsStorage[type] = gfx;
-    }
-
-    public void HandleInput(KeyboardState keyboardState) {
+    public void HandleInput(KeyPressed keyPressed) {
       switch (_state) {
         case GameState.PLAY: {
-            if (keyboardState.IsKeyDown(Keys.Up))
+            if (keyPressed(ControlKeys.THRUST))
               _ship.FlyForward();
 
-            if (keyboardState.IsKeyDown(Keys.Left))
+            if (keyPressed(ControlKeys.LEFT))
               _ship.TurnLeft();
 
-            if (keyboardState.IsKeyDown(Keys.Right))
+            if (keyPressed(ControlKeys.RIGHT))
               _ship.TurnRight();
 
-            if (keyboardState.IsKeyDown(Keys.Space))
+            if (keyPressed(ControlKeys.SHOOT))
               _ship.Shoot();
-            if (keyboardState.IsKeyDown(Keys.Escape)) {
-              InitializeStartMenu();
-              _state = GameState.MENU;
+            if (keyPressed(ControlKeys.LASER))
+              _ship.Laser();
+
+            if (keyPressed(ControlKeys.PAUSE)) {
+              _pauseUI.IsActive = true;
+              _state = GameState.PAUSE;
             }
             break;
           }
         case GameState.MENU: {
-            if (keyboardState.IsKeyDown(Keys.Enter)) {
+            if (keyPressed(ControlKeys.ENTER)) {
               InitializeNewGame();
+              _gameOverUI.IsActive = false;
+              _startMenuUI.IsActive = false;
+              _inGameUI.IsActive = true;
               _state = GameState.PLAY;
             }
-            if (keyboardState.IsKeyDown(Keys.Q))
-              _state = GameState.EXIT;
             break;
           }
+        case GameState.PAUSE:
+          if (keyPressed(ControlKeys.ENTER)) {
+            _pauseUI.IsActive = false;
+            _state = GameState.PLAY;
+          }
+          break;
         default:
           break;
       }
+
+      if (keyPressed(ControlKeys.QUIT))
+        _state = GameState.EXIT;
+      if (keyPressed(ControlKeys.DEBUG))
+        _debugUI.IsActive ^= true;
+
     }
 
     public bool Update(float deltaTime) {
-      CheckAliveObjects();
+      UpdateGameObjectsList();
 
       switch (_state) {
         case GameState.INITIAL:
-          InitializeStartMenu();
           _state = GameState.MENU;
+          _startMenuUI.IsActive = true;
           break;
         case GameState.MENU:
           break;
         case GameState.PLAY:
-          _physicsHandler.Update(deltaTime);
-          _collisionDetecter.Update();
-          _asteroidSpawner.Update(deltaTime);
-          foreach (IGameObject go in _gameObjects)
-            go.Update(deltaTime);
+          break;
+        case GameState.PAUSE:
+          break;
+        case GameState.GAMEOVER:
+          _state = GameState.MENU;
+          _inGameUI.IsActive = false;
+          _gameOverUI.IsActive = true;
           break;
         case GameState.EXIT:
           return false;
@@ -141,25 +163,28 @@ namespace Asteroids {
           return false;
       }
 
-      _activeUI.Update(deltaTime);
+      foreach (var el in UpdatableElements())
+        el.Update(deltaTime);
       return true;
     }
 
-    public IEnumerable<ITextObject> TextObjects() {
-      foreach (ITextObject to in _activeUI.GetTextUIObjects())
-        yield return to;
-    }
+    public IEnumerable<ObjectInfo> GetObjectsToDraw() {
+      foreach (IGameObject go in ActiveGameObjects())
+        yield return new ObjectInfo(go);
 
-    public IEnumerable<IGraphicalObject> GraphicalObjects() {
-      if (_state == GameState.PLAY)
-        foreach (IGameObject go in ActiveObjects())
-          yield return go as IGraphicalObject;
+      foreach (IUI ui in ActiveUIs()) {
+        foreach (ITextObject to in ui.GetActiveElements())
+          if (to is ITextObject)
+            yield return new ObjectInfo(to as ITextObject);
+          else
+            yield return new ObjectInfo(to as IBasicObject);
+      }
     }
 
     public Vector2 WindowSize => _configs.CommonConfigs.WindowSize;
     #endregion IGameManagerExternal
 
-    private void CheckAliveObjects() {
+    private void UpdateGameObjectsList() {
       if (_gameObjectsToDestroy.Count != 0) {
         foreach (var go in _gameObjectsToDestroy) {
           _gameObjects.Remove(go);
@@ -176,36 +201,77 @@ namespace Asteroids {
       }
     }
 
-    private IEnumerable<IGameObject> ActiveObjects() {
+    public IEnumerable<IGameObject> ActiveGameObjects() {
       foreach (IGameObject go in _gameObjects)
         if (go.IsActive)
           yield return go as IGameObject;
     }
 
+    private IEnumerable<IUI> ActiveUIs() {
+      foreach (var ui in _allUIs)
+        if (ui.IsActive)
+          yield return ui;
+    }
+
+    private IEnumerable<IUpdatable> UpdatableElements() {
+      switch (_state) {
+        case GameState.INITIAL:
+          break;
+        case GameState.MENU:
+          break;
+        case GameState.PLAY: {
+            yield return _collisionDetecter;
+            yield return _physicsHandler;
+            yield return _enemySpawner;
+            foreach (var go in ActiveGameObjects())
+              yield return go;
+            break;
+          }
+        case GameState.PAUSE:
+          break;
+        case GameState.EXIT:
+          break;
+        default:
+          break;
+      }
+      foreach (var ui in ActiveUIs())
+        yield return ui;
+    }
+
     #region Initializers
     private void InitializeNewGame() {
+      foreach (var go in _gameObjects) DestroyGameObject(go);
       _score = 0;
       _ship = new Ship();
       _ship.Transform.Pos = _configs.CommonConfigs.FieldSize / 2f;
       _gameObjects.Add(_ship);
-      _activeUI = new InGameUI();
-    }
-
-    private void InitializeStartMenu() {
-      _activeUI = new StartMenuUI();
     }
     #endregion Initializers
+
+    #region IGameStats
+    public int Score => _score;
+    public int BestScore => _bestScore;
+    public int Level => _score / _configs.CommonConfigs.LevelStep;
+    public IShipStats ShipStats => _ship;
+    public IEnemySpawnerStats EnemySpawnerStats => _enemySpawner as IEnemySpawnerStats;
+    #endregion IGameStats
+
 
     #region IGameManagerInternal
     public IConfigsStorage Configs => _configs;
     public IPhysicsHandler PhysicsHandler => _physicsHandler;
     public ICollisionDetecter CollisionDetecter => _collisionDetecter;
-
+    public IGameStats GameStats => this;
     public IGameObject Ship => _ship;
-    public int Score => _score;
 
     public void NotifyEnemyDead() {
       _score++;
+      if (_score > _bestScore)
+        _bestScore = _score;
+    }
+
+    public void NotifyShipCrashed() {
+      _state = GameState.GAMEOVER;
     }
 
     public void DestroyGameObject(IGameObject gameObject) {
@@ -214,10 +280,6 @@ namespace Asteroids {
 
     public void SpawnGameObject(IGameObject gameObject) {
       _gameObjectsToSpawn.Add(gameObject);
-    }
-
-    public object GetTexture(TextureID id) {
-      return _graphicsStorage[id];
     }
     #endregion IGameManagerInternal
   }

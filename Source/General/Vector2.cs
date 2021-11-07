@@ -16,10 +16,33 @@ namespace Asteroids {
     public float x { get => _x; set => _x = value; }
     public float y { get => _y; set => _y = value; }
 
+    /// <summary>
+    /// The length of the vector
+    /// </summary>
     public float Magnitude { get { return (float)Math.Sqrt(x * x + y * y); } }
+    
+    /// <summary>
+    /// Get a vector of unit length that is parallel to the original vector
+    /// </summary>
     public Vector2 Dir { get { return this / Magnitude; } }
 
-    public override String ToString() => $"({x}, {y})";
+    /// <summary>
+    /// Get the cockwise rotated vector
+    /// </summary>
+    /// <param name="degrees">angle in degrees</param>
+    /// <returns>new rotated vector</returns>
+    public Vector2 RotateOnDegrees(float degrees, Vector2 axis) {
+      float angle = - degrees / 180f * (float)Math.PI; // minus to rotate clock
+      Vector2 v = this - axis;
+      float sin = (float)Math.Sin(angle);
+      float cos = (float)Math.Cos(angle);
+
+      Vector2 res = new Vector2(cos * v.x - sin * v.y,
+                         sin * v.x + cos * v.y);
+      return res + axis;
+    }
+
+    public override String ToString() => $"({x:000}, {y:000})";
 
     public static Vector2 operator +(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.x + rhs.x, lhs.y + rhs.y);
     public static Vector2 operator -(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.x - rhs.x, lhs.y - rhs.y);

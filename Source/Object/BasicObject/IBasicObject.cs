@@ -1,10 +1,8 @@
 namespace Asteroids {
-  public interface IBasicObject {
+  public interface IBasicObject : IUpdatable {
     ITransformComponent Transform { get; }
     IGraphicsComponent Graphics { get; }
-    bool IsActive { get; set; }
     bool IsAlive { get; }
-    void Update(float deltatime);
     void Destroy();
   }
 }

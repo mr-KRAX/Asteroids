@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace Asteroids {
-  class GameObject : BasicObject, IGameObject, IGraphicalObject {
+  class GameObject : BasicObject, IGameObject {
     public IPhysicalComponent PhysicalComponent { get; private set; }
     public IColliderComponent ColliderComponent { get; private set; }
     public GameObject() : base() {
@@ -13,9 +13,9 @@ namespace Asteroids {
       base.Update(deltaTime);
     }
     public override void Destroy() {
-      base.Destroy();
       this.PhysicalComponent.OnDestroy();
       this.ColliderComponent.OnDestroy();
+      base.Destroy();
     }
   }
 

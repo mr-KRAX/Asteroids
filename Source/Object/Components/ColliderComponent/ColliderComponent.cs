@@ -56,9 +56,13 @@ namespace Asteroids {
 
     public float Radius => _radius;
 
-    public IEnumerable<Vector2> AbsoluteVertices() {
-      foreach (Vector2 v in _vertices)
-        yield return v + _transform.Pos;
+    public Vector2[] RealPolygon() {
+      Vector2[] realPolygon = _vertices.ToArray();
+      for (int i = 0; i < realPolygon.Length; i++) {
+        realPolygon[i] += Origin.Transform.Pos;
+        realPolygon[i] = realPolygon[i].RotateOnDegrees(Origin.Transform.Rotation, Origin.Transform.Pos);
+      }
+      return realPolygon;
     }
 
     public void OnDestroy() {

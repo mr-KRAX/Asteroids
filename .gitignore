@@ -66,3 +66,7 @@ monodroid*.msi
 *.VC.opendb
 
 artifacts/
+
+
+
+!Builds/Asteroids\ by\ KRAX.exe

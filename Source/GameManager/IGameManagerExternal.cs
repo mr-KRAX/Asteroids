@@ -1,15 +1,10 @@
 using System.Collections.Generic;
 
-//TODO: remove XNA dependency
-using Microsoft.Xna.Framework.Input;
-
 namespace Asteroids {
   public interface IGameManagerExternal {
-    void SetTexture(TextureID type, object gfx);
-    void HandleInput(KeyboardState keyboardState);
+    void HandleInput(KeyPressed keyPressed);
     bool Update(float deltaTime);
-    IEnumerable<IGraphicalObject> GraphicalObjects();
-    IEnumerable<ITextObject> TextObjects();
+    IEnumerable<ObjectInfo> GetObjectsToDraw();
     Vector2 WindowSize { get; }
   }
 }

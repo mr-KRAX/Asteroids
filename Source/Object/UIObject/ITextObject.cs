@@ -6,7 +6,9 @@ namespace Asteroids {
   }
 
   public interface ITextObject : IBasicObject {
-    string Text { get; }
-    TextAlign Align { get; }
+    string Text { get; set; }
+    TextAlign Align { get; set; }
+    bool BlinkingOn { get; set; }
+    void StartTyping();
   }
 }

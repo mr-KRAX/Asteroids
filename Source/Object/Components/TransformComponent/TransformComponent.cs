@@ -2,10 +2,7 @@ using System;
 
 namespace Asteroids {
   class TransformComponent : ITransformComponent {
-
-    private Vector2 _position;
     private float _rotation;
-
 
     public TransformComponent(IBasicObject go) {
       Origin = go;
@@ -20,6 +17,7 @@ namespace Asteroids {
                                               (float)Math.Cos(-_rotation * (float)Math.PI / 180));
 
     public IBasicObject Origin { get; private set; }
+    
     public void OnDestroy() { }
   }
 }

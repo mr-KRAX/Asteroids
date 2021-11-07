@@ -1,23 +1,46 @@
 using System.Collections.Generic;
 
 namespace Asteroids {
-  class StartMenuUI : IUI {
-    private TextObject _title;
+  class StartMenuUI : UI {
+    #region  UIElements
+    private ITextObject _title;
+    private ITextObject _guideLine;
+    #endregion  UIElements
+
+
+    private string _titleText = "ASTEROIDS by KRAX";
+    private string _guideLineText = "Press ENTER to begin!";
+    private float _waitTimeOut;
+    private bool _titleIsWaiting;
 
     public StartMenuUI() {
-      string str = "ASTEROIDS by KRAX";
       Vector2 pos = GameManager.GetInternalInstance().Configs.CommonConfigs.WindowSize / 2;
-      _title = new TextObject(str, pos, TextAlign.CENTRE);
+      _title = new TextObject("_", pos, TextAlign.CENTRE);
+      _title.BlinkingOn = true;
+      _waitTimeOut = 3f + 1.8f;
+      _titleIsWaiting = true;
+
+      _guideLine = new TextObject(_guideLineText, pos + new Vector2(0, -30f), TextAlign.CENTRE);
+      _guideLine.BlinkingOn = true;
+      _guideLine.IsActive = false;
+
+      _allElements = new IBasicObject[] { _title, _guideLine };
+
     }
 
-    public void Update(float deltaTime) { }
-
-    public IEnumerable<ITextObject> GetGraphicsUIObjects() {
-      throw new System.NotImplementedException();
-    }
-
-    public IEnumerable<ITextObject> GetTextUIObjects() {
-      yield return _title;
+    public override void Update(float deltaTime) {
+      base.Update(deltaTime);
+      if (_waitTimeOut >= 0f) {
+        _waitTimeOut -= deltaTime;
+        if (_titleIsWaiting && _waitTimeOut < 3f) {
+          _title.BlinkingOn = false;
+          _title.Text = _titleText;
+          _title.StartTyping();
+          _titleIsWaiting = false;
+        }
+        if (_waitTimeOut < 0f)
+          _guideLine.IsActive = true;
+      }
     }
   }
 }

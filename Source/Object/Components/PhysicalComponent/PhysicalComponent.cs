@@ -30,8 +30,9 @@ namespace Asteroids {
 
     public PhysicalComponent(IBasicObject origin) {
       Origin = origin;
-      _physics = GameManager.GetInternalInstance().PhysicsHandler;
-      _configs = GameManager.GetInternalInstance().Configs.CommonConfigs;
+      var gm = GameManager.GetInternalInstance();
+      _physics = gm.PhysicsHandler;
+      _configs = gm.Configs.CommonConfigs;
 
       Mass = 1;
       Drag = false;

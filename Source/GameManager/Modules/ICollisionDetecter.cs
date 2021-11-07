@@ -1,7 +1,6 @@
 namespace Asteroids {
-  public interface ICollisionDetecter {
+  public interface ICollisionDetecter : IModule {
     void AddColliderComponent(IColliderComponent cc);
     void RemoveColliderComponent(IColliderComponent cc);
-    void Update();
   }
 }

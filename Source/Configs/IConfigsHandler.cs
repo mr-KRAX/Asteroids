@@ -3,5 +3,6 @@ namespace Asteroids {
     ICommonConfigs CommonConfigs { get; }
     IShipConfigs ShipConfigs { get; }
     IEnemiesConfigs EnemiesConfigs { get; }
+    IUIConfigs UIConfigs { get; }
   }
 }
