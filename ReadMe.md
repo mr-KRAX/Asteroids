@@ -14,7 +14,7 @@ Destroy Asteroids and UFOs and avoid colliding with them
 
 ### Gameplay
 
-Thrust and turn your ship to move it. Use regular bullets and lasers to kill appearing enemies. The laser shoot is limited and have a recharging delay. Every killed enemy costs one point.
+Thrust and turn your ship to move it. Use regular bullets and lasers to kill floating enemies. The number of laser shots is limited and it takes 5s to recharge one. Every killed enemy gives you one point. Big asteroids breake into smaller debries that have greater speed.
 
 ---
 
