@@ -6,7 +6,7 @@
 ---
 ### Download
 
-[Ready build v1](https://github.com/mr-KRAX/Asteroids/blob/master/Builds/Asteroids%20by%20KRAX.exe)  
+[Latest release v1](https://github.com/mr-KRAX/Asteroids/releases/tag/v1.0)  
 
 ### Objective
 
